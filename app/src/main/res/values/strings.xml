@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">licencjat_gps_kid</string>
+    <string name="invitation_title">Send App Invite Quickstart Invitation</string>
+    <string name="db_user_account_settings_node_name">user_account_settings</string>
+</resources>
