@@ -1,5 +1,6 @@
 package kamilmilik.licencjat_gps_kid
 
+import android.app.ProgressDialog
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
@@ -26,6 +27,13 @@ import kamilmilik.licencjat_gps_kid.Utils.ListOnlineViewHolder
 import kamilmilik.licencjat_gps_kid.models.User
 import kamilmilik.licencjat_gps_kid.models.UserUniqueKey
 import java.util.Collections.frequency
+import kamilmilik.licencjat_gps_kid.Utils.RecyclerViewAdapter
+import android.widget.ArrayAdapter
+import com.google.firebase.database.ChildEventListener
+
+
+
+
 
 
 
@@ -36,31 +44,35 @@ class ListOnline : AppCompatActivity() {
     lateinit var onlineRef : DatabaseReference
     lateinit var currentUserRef : DatabaseReference
     lateinit var counterRef : DatabaseReference
-    var adapter: FirebaseRecyclerAdapter<User, ListOnlineViewHolder>? = null
 
-    lateinit var listOnline : RecyclerView
-    lateinit var layoutManager : RecyclerView.LayoutManager
+    lateinit var adapter : RecyclerViewAdapter
+    lateinit var recyclerView : RecyclerView
+    lateinit var valueList :ArrayList<User>
 
-    var clickedUser : User? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list_online)
 
+        recyclerView =  findViewById(R.id.listOnline)
+
+        recyclerView.setHasFixedSize(true)
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        valueList = ArrayList()
+        adapter = RecyclerViewAdapter(this@ListOnline, valueList)
+        recyclerView.adapter = adapter
+
         generateCodeButtonAction()
         enterCodeButtonAction()
 
-        setupListOnlineRecycler()
 
         setupToolbar()
 
-        setupFirebaseDatabaseReference()
+        findFollowersConnection()
 
         setupSystem()
-
-        updateList()
-
-        findFollowersConnection()
     }
 
     private fun setupToolbar(){
@@ -79,54 +91,9 @@ class ListOnline : AppCompatActivity() {
             startActivity(intent)
         })
     }
-    private fun setupListOnlineRecycler(){
-        layoutManager = LinearLayoutManager(this)
-        listOnline = findViewById(R.id.listOnline)
-        listOnline.setHasFixedSize(true)
-        listOnline.layoutManager = layoutManager
-    }
-    private fun setupFirebaseDatabaseReference(){
-        onlineRef = FirebaseDatabase.getInstance().reference.child(".info/connected")
-        counterRef = FirebaseDatabase.getInstance().getReference("last_online")
-        currentUserRef = FirebaseDatabase.getInstance().getReference("last_online").child(FirebaseAuth.getInstance().currentUser!!.uid)
-    }
-    private fun updateList() {
-        Log.i(TAG,"updateList: update recycler view list")
-        var currentUser = FirebaseAuth.getInstance().currentUser
-        val reference = FirebaseDatabase.getInstance().reference
-        val query = reference.child("followers")
-                .orderByKey()
-                .equalTo(currentUser!!.uid)
-        query.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                for (singleSnapshot in dataSnapshot.children) {
-                    for(childSingleSnapshot in singleSnapshot.children){
-                        Log.i(TAG,"value followers: " + childSingleSnapshot.value)
-                    }
-                }
-                if(dataSnapshot.value == null){//nothing found
-                    Log.i(TAG,"nothing found in onDataChange in followers")
-                }
-            }
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.i(TAG,"onCancelled: " + databaseError.message)
-            }
-        })
-        adapter = object : FirebaseRecyclerAdapter<User, ListOnlineViewHolder>(
-                User::class.java, R.layout.user_layout, ListOnlineViewHolder::class.java, query
-        ) {
-            protected override fun populateViewHolder(viewHolder: ListOnlineViewHolder, model: User, position: Int) {
-                //viewHolder.txtEmail.text = model.email + " " + model.userId
 
-//                viewHolder.itemView.setOnClickListener(View.OnClickListener { v ->
-//                    findUserByIdInAccountSettings(model)
-//                })
-            }
+//
 
-        }
-        adapter!!.notifyDataSetChanged()
-        listOnline.adapter = adapter
-    }
     private fun findFollowersConnection(){
         Log.i(TAG,"findFollowersConnection, current user id : " + FirebaseAuth.getInstance().currentUser!!.uid)
         var currentUser = FirebaseAuth.getInstance().currentUser
@@ -136,16 +103,15 @@ class ListOnline : AppCompatActivity() {
 
     }
     private fun findFollowersUser(reference : DatabaseReference, currentUser : FirebaseUser){
-        var valueList :ArrayList<User> = ArrayList()
         val query = reference.child("followers")
                 .orderByKey()
                 .equalTo(currentUser!!.uid)
-        query.addListenerForSingleValueEvent(object : ValueEventListener {
+        query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 for (singleSnapshot in dataSnapshot.children) {
                     for(childSingleSnapshot in singleSnapshot.children){
-                         var userFollowers = childSingleSnapshot.child("user").getValue(User::class.java)
-                         Log.i(TAG,"value followers: " + userFollowers.userId + " " + userFollowers.email)
+                        var userFollowers = childSingleSnapshot.child("user").getValue(User::class.java)
+                        Log.i(TAG,"value followers: " + userFollowers.userId + " " + userFollowers.email)
                         valueList.add(userFollowers)
                     }
                 }
@@ -155,6 +121,9 @@ class ListOnline : AppCompatActivity() {
                     for(user in valueList){
                         Log.i(TAG,"user complete : " + user.email)
                     }
+                    adapter = RecyclerViewAdapter(this@ListOnline, valueList)
+                    recyclerView.adapter = adapter
+                    adapter.notifyDataSetChanged()
                 }
             }
             override fun onCancelled(databaseError: DatabaseError) {
@@ -164,11 +133,10 @@ class ListOnline : AppCompatActivity() {
 
     }
     private fun findFollowingUser(reference : DatabaseReference, currentUser : FirebaseUser){
-        var valueList :ArrayList<User> = ArrayList()
-        val query2 = reference.child("following")
+        val query = reference.child("following")
                 .orderByKey()
                 .equalTo(currentUser!!.uid)
-        query2.addListenerForSingleValueEvent(object : ValueEventListener {
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 for (singleSnapshot in dataSnapshot.children) {
                     for(childSingleSnapshot in singleSnapshot.children){
@@ -183,6 +151,9 @@ class ListOnline : AppCompatActivity() {
                     for(user in valueList){
                         Log.i(TAG,"user complete : " + user.email)
                     }
+                    adapter = RecyclerViewAdapter(this@ListOnline, valueList)
+                    recyclerView.adapter = adapter
+                    adapter.notifyDataSetChanged()
                 }
 
             }
@@ -193,50 +164,8 @@ class ListOnline : AppCompatActivity() {
 
 
     }
-    /**
-     * find given user in database
-     * @param user
-     */
-    private fun findUserByIdInAccountSettings(user : User){
-        Log.i(TAG, " findUserByIdInAccountSettings: find given user in db")
-        val reference = FirebaseDatabase.getInstance().reference
-        val query = reference.child(getString(R.string.db_user_account_settings_node_name))
-                .orderByChild("userId").equalTo(user.userId)
-        query.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                for (singleSnapshot in dataSnapshot.children) {
-                    Log.d(TAG, "onDataChange: found user:" + singleSnapshot.value)
-                    clickedUser = singleSnapshot.getValue(User::class.java)
-                }
-                Log.i(TAG,"found user: "  + clickedUser!!.email + " " + clickedUser!!.userId)
-                if(!FirebaseAuth.getInstance().currentUser!!.uid.equals(clickedUser!!.userId)){ // if user not clicked self
-                    addConnectedUserToDatabase()
-                }
-            }
-            override fun onCancelled(databaseError: DatabaseError) {
-            }
-        })
-    }
 
-    /**
-     * add new connection between two account
-     */
-    private fun addConnectedUserToDatabase(){
-        Log.i(TAG, "addConnectedUserToDatabase: add user data following and followers to database")
-        FirebaseDatabase.getInstance().reference
-                .child("following")
-                .child(FirebaseAuth.getInstance().getCurrentUser()!!.uid)
-                .child(clickedUser!!.userId)
-                .child("userId")
-                .setValue(clickedUser!!.userId);
 
-        FirebaseDatabase.getInstance().reference
-                .child("followers")
-                .child(clickedUser!!.userId)
-                .child(FirebaseAuth.getInstance().getCurrentUser()!!.uid)
-                .child("userId")
-                .setValue(FirebaseAuth.getInstance().getCurrentUser()!!.uid)
-    }
     private fun setupSystem() {
         Log.i(TAG, "setupSystem: set up online account to list")
         //To make your app data update in realtime, you should add a ValueEventListener to the reference you just created.
@@ -268,7 +197,7 @@ class ListOnline : AppCompatActivity() {
                     currentUserRef.onDisconnect().removeValue()//Remove the value at this location when the client disconnects
                     //add to last_online current user
                     counterRef.child(FirebaseAuth.getInstance().currentUser!!.uid).setValue(User(FirebaseAuth.getInstance().currentUser!!.uid,FirebaseAuth.getInstance().currentUser!!.email!!))
-                    adapter!!.notifyDataSetChanged()
+                   // adapter!!.notifyDataSetChanged()
                 }
             }
         })

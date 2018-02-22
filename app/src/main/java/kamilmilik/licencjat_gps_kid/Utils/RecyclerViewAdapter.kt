@@ -13,7 +13,7 @@ import kamilmilik.licencjat_gps_kid.models.User
 /**
  * Created by kamil on 22.02.2018.
  */
-class RecyclerViewAdapter(internal var context: Context, internal var dataList: List<User>) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
+class RecyclerViewAdapter(internal var context: Context, internal var dataList: ArrayList<User>) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
