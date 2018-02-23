@@ -23,6 +23,7 @@ import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AlertDialog
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseUser
 import kamilmilik.licencjat_gps_kid.Invite.EnterInviteActivity
@@ -35,13 +36,16 @@ import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import kamilmilik.licencjat_gps_kid.Utils.OnItemClickListener
 import kamilmilik.licencjat_gps_kid.models.TrackingModel
 
 
 class ListOnline : AppCompatActivity(),
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener{
+        com.google.android.gms.location.LocationListener,
+        OnItemClickListener{
+
 
     override fun onConnected(p0: Bundle?) {
         displayLocation()
@@ -210,8 +214,10 @@ class ListOnline : AppCompatActivity(),
                                 currentUser!!.email!!,
                                 lastLocation.latitude.toString(),
                                 lastLocation.longitude.toString()))
+
+
             }else{
-                Toast.makeText(this,"Couldn't get the location", Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "Couldn't get the location")
             }
 
         }catch (e: SecurityException) {
@@ -261,8 +267,17 @@ class ListOnline : AppCompatActivity(),
         valueList = ArrayList()
         adapter = RecyclerViewAdapter(this@ListOnline, valueList)
         recyclerView.adapter = adapter
+        adapter.setClickListener(this)
     }
-
+    override fun setOnItemClick(view: View, position: Int) {
+        Toast.makeText(this@ListOnline,"clicked " + position + " user " + valueList.get(position).email,Toast.LENGTH_SHORT).show()
+        Log.i(TAG,"setOnItemClick: clicked to item view in RecyclerView : position: "+ position + " user " + valueList.get(position).email)
+        var intent = Intent(this,MapTrackingActivity::class.java)
+        intent.putExtra("userId", valueList.get(position).userId)
+        intent.putExtra("lat", lastLocation.latitude)
+        intent.putExtra("lng", lastLocation.latitude)
+        startActivity(intent)
+    }
     private fun generateCodeButtonAction(){
         buttonToActivityGenerateCode.setOnClickListener({
             var intent  = Intent(this, SendInviteActivity::class.java)
@@ -275,8 +290,6 @@ class ListOnline : AppCompatActivity(),
             startActivity(intent)
         })
     }
-
-//
 
     private fun findFollowersConnection(){
         Log.i(TAG,"findFollowersConnection, current user id : " + FirebaseAuth.getInstance().currentUser!!.uid)
@@ -307,6 +320,7 @@ class ListOnline : AppCompatActivity(),
                     }
                     adapter = RecyclerViewAdapter(this@ListOnline, valueList)
                     recyclerView.adapter = adapter
+                    adapter.setClickListener(this@ListOnline)
                     adapter.notifyDataSetChanged()
                 }
             }
@@ -337,6 +351,8 @@ class ListOnline : AppCompatActivity(),
                     }
                     adapter = RecyclerViewAdapter(this@ListOnline, valueList)
                     recyclerView.adapter = adapter
+                    adapter.setClickListener(this@ListOnline)
+
                     adapter.notifyDataSetChanged()
                 }
 

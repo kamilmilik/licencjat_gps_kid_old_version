@@ -1,11 +1,14 @@
 package kamilmilik.licencjat_gps_kid.Utils
 
 import android.content.Context
+import android.content.Intent
+import android.location.Location
 import android.widget.TextView
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import kamilmilik.licencjat_gps_kid.MapTrackingActivity
 import kamilmilik.licencjat_gps_kid.R
 import kamilmilik.licencjat_gps_kid.models.User
 
@@ -14,6 +17,7 @@ import kamilmilik.licencjat_gps_kid.models.User
  * Created by kamil on 22.02.2018.
  */
 class RecyclerViewAdapter(internal var context: Context, internal var dataList: ArrayList<User>) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
+    private var onItemClickListener: OnItemClickListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
@@ -26,24 +30,38 @@ class RecyclerViewAdapter(internal var context: Context, internal var dataList: 
 
         val data = dataList[position]
 
-        holder.textEmail.setText(data.email)
+        holder.textEmail.text = data.email
+
+//        holder.itemView.setOnClickListener(View.OnClickListener {
+//            var intent = Intent(context,MapTrackingActivity::class.java)
+//            intent.putExtra("userId", data.userId)
+//            context.startActivity(intent)
+//        })
 
 
     }
-
+    fun setClickListener(onItemClickListener: OnItemClickListener){
+        this.onItemClickListener = onItemClickListener
+    }
     override fun getItemCount(): Int {
 
         return dataList.size
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),View.OnClickListener {
+
+        override fun onClick(v: View?) {
+            onItemClickListener!!.setOnItemClick(v!!, getAdapterPosition())
+        }
 
         var textEmail: TextView
 
         init {
 
             textEmail = itemView.findViewById(R.id.emailText)
+            itemView.setOnClickListener(this)
 
         }
+
     }
 }
