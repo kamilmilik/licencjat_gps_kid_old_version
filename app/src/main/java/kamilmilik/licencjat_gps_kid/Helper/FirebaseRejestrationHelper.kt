@@ -1,4 +1,4 @@
-package kamilmilik.licencjat_gps_kid.Utils
+package kamilmilik.licencjat_gps_kid.Helper
 
 import android.annotation.SuppressLint
 import android.app.Activity

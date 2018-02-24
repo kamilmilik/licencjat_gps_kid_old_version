@@ -1,4 +1,4 @@
-package kamilmilik.licencjat_gps_kid.Utils
+package kamilmilik.licencjat_gps_kid.Helper
 
 import android.content.Context
 import android.support.v7.widget.RecyclerView
@@ -6,6 +6,8 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import kamilmilik.licencjat_gps_kid.Utils.OnItemClickListener
+import kamilmilik.licencjat_gps_kid.Utils.RecyclerViewAdapter
 import kamilmilik.licencjat_gps_kid.models.User
 
 /**
@@ -40,10 +42,7 @@ class FinderUserConnectionHelper(var context : Context, var listener : OnItemCli
                     for(user in valueList){
                         Log.i(TAG,"user complete : " + user.email)
                     }
-                    adapter = RecyclerViewAdapter(context, valueList)
-                    recyclerView.adapter = adapter
-                    adapter.setClickListener(listener)
-                    adapter.notifyDataSetChanged()
+                    updateRecyclerView()
                 }
             }
             override fun onCancelled(databaseError: DatabaseError) {
@@ -71,11 +70,7 @@ class FinderUserConnectionHelper(var context : Context, var listener : OnItemCli
                     for(user in valueList){
                         Log.i(TAG,"user complete : " + user.email)
                     }
-                    adapter = RecyclerViewAdapter(context, valueList)
-                    recyclerView.adapter = adapter
-                    adapter.setClickListener(listener)
-
-                    adapter.notifyDataSetChanged()
+                    updateRecyclerView()
                 }
 
             }
@@ -83,8 +78,13 @@ class FinderUserConnectionHelper(var context : Context, var listener : OnItemCli
                 Log.i(TAG,"onCancelled: " + databaseError.message)
             }
         })
+    }
+    private fun updateRecyclerView(){
+        adapter = RecyclerViewAdapter(context, valueList)
+        recyclerView.adapter = adapter
+        adapter.setClickListener(listener)
 
-
+        adapter.notifyDataSetChanged()
     }
 
 }

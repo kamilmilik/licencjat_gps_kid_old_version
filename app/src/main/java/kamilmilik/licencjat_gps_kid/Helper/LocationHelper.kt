@@ -1,12 +1,12 @@
-package kamilmilik.licencjat_gps_kid.Utils
+package kamilmilik.licencjat_gps_kid.Helper
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.provider.Settings
@@ -60,13 +60,21 @@ class LocationHelper(
     }
 
 
-    fun currentUserLocationAction(){
-        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
-            ActivityCompat.requestPermissions(activity, arrayOf(
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION
-            ), MY_PERMISSION_REQUEST_CODE)
+    private fun isPermissionChecked() : Boolean {
+        return ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+    }
+
+    private fun displayPermissionCheck() {
+        ActivityCompat.requestPermissions(activity, arrayOf(
+                android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+        ), MY_PERMISSION_REQUEST_CODE)
+    }
+
+    fun currentUserLocationAction() {
+        if (isPermissionChecked()) {
+            displayPermissionCheck()
         } else {
             if (googleApiClient == null) {
                 buildGoogleApiClient()
@@ -74,18 +82,20 @@ class LocationHelper(
             }
             if (googleApiClient != null) {
                 if (googleApiClient!!.isConnected) {
-                    if (checkPlayServices()) {
-                        buildGoogleApiClient()
-                        createLocationRequest()
-                        displayLocation()
-                    }
+                    setupCurrentLocation()
                 }
             } else {
-                Log.i(TAG,"googleApiClient == null")
+                Log.i(TAG, "googleApiClient == null")
             }
         }
     }
-
+    fun setupCurrentLocation(){
+        if (checkPlayServices()) {
+            buildGoogleApiClient()
+            createLocationRequest()
+            displayLocation()
+        }
+    }
      fun checkPlayServices(): Boolean{
         var resultCode : Int = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context)
         if(resultCode != ConnectionResult.SUCCESS) {
@@ -100,14 +110,14 @@ class LocationHelper(
         return true
     }
 
-     fun buildGoogleApiClient() {
+     private fun buildGoogleApiClient() {
         googleApiClient = GoogleApiClient.Builder(context)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API).build()
         googleApiClient!!.connect()
     }
-     fun createLocationRequest() {
+     private fun createLocationRequest() {
         locationRequest = LocationRequest()
         locationRequest.interval = UPDATE_INTERVAL.toLong()
         locationRequest.fastestInterval = FASTEST_INTERVAL.toLong()
@@ -115,47 +125,54 @@ class LocationHelper(
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
 
     }
+    fun connectToGoogleApi() {
+        if (googleApiClient != null) {
+            googleApiClient!!.connect()
+        }
+    }
+    fun disconnectGoogleApi(){
+        if (googleApiClient != null) {
+            googleApiClient!!.disconnect()
+        }
+    }
 
-     fun displayLocation() {
-        if(ActivityCompat.checkSelfPermission(context,android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ( ActivityCompat.checkSelfPermission(context,android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)){
+    private fun displayLocation() {
+        if (isPermissionChecked()) {
             return
         }
         checkLocationEnabled()
-        var locations = FirebaseDatabase.getInstance().getReference("Locations")
 
-        try{
+        try {
             lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient)
-            if(lastLocation != null){
-                var currentUser = FirebaseAuth.getInstance().currentUser
-                //update to firebase
-                locations.child(currentUser!!.uid)
-                        .setValue(TrackingModel(currentUser.uid,
-                                currentUser!!.email!!,
-                                lastLocation.latitude.toString(),
-                                lastLocation.longitude.toString()))
-
-
-            }else{
+            if (lastLocation != null) {
+                addLocationToFirebase()
+            } else {
                 Log.i(TAG, "Couldn't get the location")
             }
 
-        }catch (e: SecurityException) {
-            Toast.makeText(context,
-                    "SecurityException:\n" + e.toString(),
-                    Toast.LENGTH_LONG).show()
+        } catch (e: SecurityException) {
+            Log.i(TAG,"SecurityException:\n" + e.toString())
         }
     }
-     fun startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
-            Log.i(TAG,"no permission")
+    private fun addLocationToFirebase(){
+        var locations = FirebaseDatabase.getInstance().getReference("Locations")
+        var currentUser = FirebaseAuth.getInstance().currentUser
+
+        locations.child(currentUser!!.uid)
+                .setValue(TrackingModel(currentUser.uid,
+                        currentUser!!.email!!,
+                        lastLocation.latitude.toString(),
+                        lastLocation.longitude.toString()))
+    }
+     @SuppressLint("MissingPermission")
+     private fun startLocationUpdates() {
+        if (isPermissionChecked()) {
             return
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
     }
 
-     fun checkLocationEnabled(): Boolean {
+     private fun checkLocationEnabled(): Boolean {
         if(!isLocationEnabled())
             showAlert();
         return isLocationEnabled();
