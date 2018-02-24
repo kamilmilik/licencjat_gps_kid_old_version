@@ -19,6 +19,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.os.PersistableBundle
 import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AlertDialog
@@ -48,7 +49,7 @@ class ListOnline : AppCompatActivity(),
 
 
     override fun onConnected(p0: Bundle?) {
-        displayLocation()
+        //displayLocation()
         startLocationUpdates()
     }
 
@@ -96,6 +97,12 @@ class ListOnline : AppCompatActivity(),
     override fun onPostResume() {
         super.onPostResume()
         checkPlayServices()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        buildGoogleApiClient()
+        createLocationRequest()
+        displayLocation()
     }
     val TAG : String = "ListOnline"
     //Firebase
