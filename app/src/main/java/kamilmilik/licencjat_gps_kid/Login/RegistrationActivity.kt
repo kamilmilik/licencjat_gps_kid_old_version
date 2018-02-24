@@ -2,9 +2,7 @@ package kamilmilik.licencjat_gps_kid.Login
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 
-import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import com.google.firebase.auth.FirebaseAuth
@@ -16,7 +14,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DataSnapshot
 import kamilmilik.licencjat_gps_kid.R
 import kamilmilik.licencjat_gps_kid.Utils.CheckValidDataInEditText
-import kamilmilik.licencjat_gps_kid.Utils.FirebaseMethods
+import kamilmilik.licencjat_gps_kid.Utils.FirebaseRejestrationHelper
 
 
 class RegistrationActivity : AppCompatActivity() {
@@ -26,7 +24,7 @@ class RegistrationActivity : AppCompatActivity() {
     private var password : String? = null
 
     private var firebaseAuth: FirebaseAuth? = null
-    private var firebaseMehods : FirebaseMethods? = null
+    private var firebaseMehods : FirebaseRejestrationHelper? = null
     private var firebaseListener : FirebaseAuth.AuthStateListener? = null
 
     private var firebaseDatabase : FirebaseDatabase? = null
@@ -45,7 +43,7 @@ class RegistrationActivity : AppCompatActivity() {
     private fun setupFirebase(){
         Log.i(TAG,"setupFirebase: setup firebase")
         firebaseAuth = FirebaseAuth.getInstance()
-        firebaseMehods = FirebaseMethods(this@RegistrationActivity)
+        firebaseMehods = FirebaseRejestrationHelper(this@RegistrationActivity)
         firebaseDatabase = FirebaseDatabase.getInstance()
         databaseReference = firebaseDatabase!!.getReference()
         firebaseListener = FirebaseAuth.AuthStateListener { firebaseAuth ->

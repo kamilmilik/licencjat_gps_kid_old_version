@@ -65,12 +65,19 @@ class MapTrackingActivity : AppCompatActivity(), OnMapReadyCallback {
 
                    map.clear()
                    //add followingUser marker
-                   var distance = calculateDistanceBetweenUsers(currentUserLocation,followingUserLoc)
+                   var measure : String?
+                   var distance : Float = currentUserLocation.distanceTo(followingUserLoc)
+                   if (distance > 1000){
+                       distance = (distance / 1000)
+                       measure = " km"
+                   }else{
+                       measure = " m"
+                   }
                    Log.i(TAG,"ustawiam marker na pozycje: " + followingUserLocation + " dla " + followingUserTracking.email)
                    map.addMarker(MarkerOptions()
                            .position(followingUserLocation)
                            .title(followingUserTracking.email)
-                           .snippet("Distance " + DecimalFormat("#.#").format(currentUserLocation.distanceTo(followingUserLoc)) + " m")
+                           .snippet("Distance " + DecimalFormat("#.#").format(distance) + measure)
                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(currentUserLat!!, currentUserLng!!),12.0f))
                }
@@ -89,24 +96,5 @@ class MapTrackingActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
         })
-    }
-    private fun calculateDistanceBetweenUsers(currentUserLocation : Location, followingUserLocation : Location): Double{
-        var theta : Double = currentUserLocation.longitude - followingUserLocation.longitude
-        var dist : Double = Math.sin(deg2rad(currentUserLocation.latitude)) *
-                            Math.sin(deg2rad(followingUserLocation.latitude)) *
-                            Math.cos(deg2rad(currentUserLocation.latitude)) *
-                            Math.cos(deg2rad(followingUserLocation.latitude)) *
-                            Math.cos(deg2rad(theta))
-        dist = Math.acos(dist)
-        dist = rad2deg(dist)
-        dist = dist * 60 * 1.1515
-        return dist
-
-    }
-    private fun deg2rad(deg : Double) : Double{
-        return (deg * Math.PI / 180.0)
-    }
-    private fun rad2deg(rad : Double):Double{
-        return (rad * 180.0 / Math.PI)
     }
 }

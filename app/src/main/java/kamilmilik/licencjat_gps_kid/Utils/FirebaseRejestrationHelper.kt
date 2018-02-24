@@ -1,5 +1,6 @@
 package kamilmilik.licencjat_gps_kid.Utils
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Context
@@ -16,8 +17,10 @@ import kamilmilik.licencjat_gps_kid.models.User
 /**
  * Created by kamil on 19.02.2018.
  */
-class FirebaseMethods{
-    private val TAG : String = "FirebaseMethods"
+class FirebaseRejestrationHelper {
+    @SuppressLint("LongLogTag")
+    private val TAG : String = "FirebaseRejestrationHelper"
+
     private var firebaseAuth: FirebaseAuth? = null
     private var firebaseDatabase : FirebaseDatabase? = null
     private var databaseReference : DatabaseReference? = null
@@ -34,7 +37,7 @@ class FirebaseMethods{
         this.context = context
     }
 
-    /**
+            /**
      * Register a new user to Firebase
      * @param email
      * @param password
