@@ -278,12 +278,11 @@ class ListOnline : AppCompatActivity(),
         adapter.setClickListener(this)
     }
     override fun setOnItemClick(view: View, position: Int) {
-        Toast.makeText(this@ListOnline,"clicked " + position + " user " + valueList.get(position).email,Toast.LENGTH_SHORT).show()
         Log.i(TAG,"setOnItemClick: clicked to item view in RecyclerView : position: "+ position + " user " + valueList.get(position).email)
         var intent = Intent(this,MapTrackingActivity::class.java)
-        intent.putExtra("userId", valueList.get(position).userId)
-        intent.putExtra("lat", lastLocation.latitude)
-        intent.putExtra("lng", lastLocation.latitude)
+        intent.putExtra("followingUserId", valueList.get(position).userId)
+        intent.putExtra("currentUserLat", lastLocation.latitude)
+        intent.putExtra("currentUserLng", lastLocation.longitude)
         startActivity(intent)
     }
     private fun generateCodeButtonAction(){

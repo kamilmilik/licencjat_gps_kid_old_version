@@ -4,6 +4,7 @@ import android.location.Location
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
 
 import com.google.android.gms.maps.GoogleMap
@@ -23,8 +24,8 @@ class MapTrackingActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var followingUserId: String
     private lateinit var locations: DatabaseReference
 
-    private var lat: Double? = null
-    private var lng : Double? = null
+    private var currentUserLat: Double? = null
+    private var currentUserLng: Double? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +43,9 @@ class MapTrackingActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
     private fun loadLocationsFromDatabaseForCurrentUser(){
-        followingUserId = intent.getStringExtra("userId")
-        lat = intent.getDoubleExtra("lat", 0.0)
-        lng = intent.getDoubleExtra("lng",0.0)
+        followingUserId = intent.getStringExtra("followingUserId")
+        currentUserLat = intent.getDoubleExtra("currentUserLat", 0.0)
+        currentUserLng = intent.getDoubleExtra("currentUserLng",0.0)
 
         locations = FirebaseDatabase.getInstance().getReference("Locations")
         var query : Query = locations.orderByChild("userId").equalTo(followingUserId)
@@ -52,7 +53,6 @@ class MapTrackingActivity : AppCompatActivity(), OnMapReadyCallback {
             override fun onDataChange(dataSnapshot: DataSnapshot?) {
                for(singleSnapshot in dataSnapshot!!.children){
                 var followingUserTracking = singleSnapshot.getValue(TrackingModel::class.java)
-
                    var followingUserLocation = LatLng(followingUserTracking.lat!!.toDouble(), followingUserTracking.lng!!.toDouble())
 
                    var followingUserLoc  = Location("")
@@ -60,25 +60,27 @@ class MapTrackingActivity : AppCompatActivity(), OnMapReadyCallback {
                    followingUserLoc.longitude = followingUserTracking.lng!!.toDouble()
 
                    var currentUserLocation = Location("")
-                   currentUserLocation.latitude = lat!!
-                   currentUserLocation.longitude = lng!!
+                   currentUserLocation.latitude = currentUserLat!!
+                   currentUserLocation.longitude = currentUserLng!!
 
                    map.clear()
                    //add followingUser marker
                    var distance = calculateDistanceBetweenUsers(currentUserLocation,followingUserLoc)
+                   Log.i(TAG,"ustawiam marker na pozycje: " + followingUserLocation + " dla " + followingUserTracking.email)
                    map.addMarker(MarkerOptions()
                            .position(followingUserLocation)
                            .title(followingUserTracking.email)
-                           .snippet("Distance " + DecimalFormat("#.#").format(distance) + " km")
+                           .snippet("Distance " + DecimalFormat("#.#").format(currentUserLocation.distanceTo(followingUserLoc)) + " m")
                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
-                   map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat!!,lng!!),12.0f))
+                   map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(currentUserLat!!, currentUserLng!!),12.0f))
                }
                 if(dataSnapshot.value == null){//nothing found
                     Log.i(TAG,"nothing found in onDataChange")
                 }
                 //add currentUser marker
+                Log.i(TAG,"ustawiam marker na pozycje: " + currentUserLat +" " + currentUserLng + " dla " + FirebaseAuth.getInstance().currentUser!!.email)
                 map.addMarker(MarkerOptions()
-                        .position(LatLng(lat!!,lng!!))
+                        .position(LatLng(currentUserLat!!, currentUserLng!!))
                         .title(FirebaseAuth.getInstance().currentUser!!.email))
             }
 
