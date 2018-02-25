@@ -26,54 +26,70 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            Log.i(TAG, "Wszystko ok ?")
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_FINE_LOCATION)&&
-                    ( ActivityCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
-                Toast.makeText(this,"You must accept it",Toast.LENGTH_SHORT).show()
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
+//        if (ContextCompat.checkSelfPermission(this,
+//                android.Manifest.permission.ACCESS_FINE_LOCATION)
+//                != PackageManager.PERMISSION_GRANTED) {
+//            Log.i(TAG, "Wszystko ok ?")
+//            // Should we show an explanation?
+//            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_FINE_LOCATION)&&
+//                    ( ActivityCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+//                Toast.makeText(this,"You must accept it",Toast.LENGTH_SHORT).show()
+//                // Show an explanation to the user *asynchronously* -- don't block
+//                // this thread waiting for the user's response! After the user
+//                // sees the explanation, try again to request the permission.
+//
+//            } else {
+//
+//                // No explanation needed, we can request the permission.
+//                Log.i(TAG,"request permission")
+//                ActivityCompat.requestPermissions(this,
+//                        arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION,
+//                                android.Manifest.permission.ACCESS_COARSE_LOCATION),
+//                        MY_PERMISSION_REQUEST_CODE)
+//
+//                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+//                // app-defined int constant. The callback method gets the
+//                // result of the request.
+//            }
+//        } else {
+//            // Permission has already been granted
+//            var firebaseAuth = FirebaseAuth.getInstance()
+//            if (firebaseAuth.currentUser != null) {
+//                finish()
+//                val intent = Intent(this, ListOnline::class.java)
+//                startActivity(intent)
+//            }
+//            registrationButton.setOnClickListener(View.OnClickListener {
+//                Log.i(TAG, "registrationButton listener: registration button Action")
+//                val intent = Intent(this@MainActivity, RegistrationActivity::class.java)
+//                startActivity(intent)
+//            })
+//
+//            loginButton.setOnClickListener(View.OnClickListener {
+//                Log.i(TAG, "loginButton listener: login button Action")
+//                val intent = Intent(this@MainActivity, LoginActivity::class.java)
+//                startActivity(intent)
+//            })
+//        }
 
-            } else {
 
-                // No explanation needed, we can request the permission.
-                Log.i(TAG,"request permission")
-                ActivityCompat.requestPermissions(this,
-                        arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION,
-                                android.Manifest.permission.ACCESS_COARSE_LOCATION),
-                        MY_PERMISSION_REQUEST_CODE)
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
-            }
-        } else {
-            // Permission has already been granted
-            var firebaseAuth = FirebaseAuth.getInstance()
-            if (firebaseAuth.currentUser != null) {
-                finish()
-                val intent = Intent(this, ListOnline::class.java)
-                startActivity(intent)
-            }
-            registrationButton.setOnClickListener(View.OnClickListener {
-                Log.i(TAG, "registrationButton listener: registration button Action")
-                val intent = Intent(this@MainActivity, RegistrationActivity::class.java)
-                startActivity(intent)
-            })
-
-            loginButton.setOnClickListener(View.OnClickListener {
-                Log.i(TAG, "loginButton listener: login button Action")
-                val intent = Intent(this@MainActivity, LoginActivity::class.java)
-                startActivity(intent)
-            })
+        var firebaseAuth = FirebaseAuth.getInstance()
+        if (firebaseAuth.currentUser != null) {
+            finish()
+            val intent = Intent(this, ListOnline::class.java)
+            startActivity(intent)
         }
+        registrationButton.setOnClickListener(View.OnClickListener {
+            Log.i(TAG, "registrationButton listener: registration button Action")
+            val intent = Intent(this@MainActivity, RegistrationActivity::class.java)
+            startActivity(intent)
+        })
 
-
-
+        loginButton.setOnClickListener(View.OnClickListener {
+            Log.i(TAG, "loginButton listener: login button Action")
+            val intent = Intent(this@MainActivity, LoginActivity::class.java)
+            startActivity(intent)
+        })
 
 
     }

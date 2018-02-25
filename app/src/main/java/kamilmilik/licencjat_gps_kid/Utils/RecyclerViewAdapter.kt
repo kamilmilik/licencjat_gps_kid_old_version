@@ -1,14 +1,11 @@
 package kamilmilik.licencjat_gps_kid.Utils
 
 import android.content.Context
-import android.content.Intent
-import android.location.Location
 import android.widget.TextView
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kamilmilik.licencjat_gps_kid.MapTrackingActivity
 import kamilmilik.licencjat_gps_kid.R
 import kamilmilik.licencjat_gps_kid.models.User
 

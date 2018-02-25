@@ -42,7 +42,7 @@ class LocationHelper(
     var googleApiClient : GoogleApiClient? = null
     lateinit var lastLocation : Location
     override fun onConnected(p0: Bundle?) {
-        //displayLocation()
+        //getLocation()
         startLocationUpdates()
     }
 
@@ -56,15 +56,21 @@ class LocationHelper(
 
     override fun onLocationChanged(location: Location?) {
         lastLocation = location!!
-        displayLocation()
+        getLocation()
     }
 
 
+    /**
+     * check that user accept the permission
+     */
     private fun isPermissionChecked() : Boolean {
         return ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
     }
 
+    /**
+     * display permission dialog to deny or allow
+     */
     private fun displayPermissionCheck() {
         ActivityCompat.requestPermissions(activity, arrayOf(
                 android.Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -72,6 +78,9 @@ class LocationHelper(
         ), MY_PERMISSION_REQUEST_CODE)
     }
 
+    /**
+     * action for getting current location
+     */
     fun currentUserLocationAction() {
         if (isPermissionChecked()) {
             displayPermissionCheck()
@@ -89,11 +98,14 @@ class LocationHelper(
             }
         }
     }
+    /**
+     * action for getting current location
+     */
     fun setupCurrentLocation(){
         if (checkPlayServices()) {
             buildGoogleApiClient()
             createLocationRequest()
-            displayLocation()
+            getLocation()
         }
     }
      fun checkPlayServices(): Boolean{
@@ -136,7 +148,7 @@ class LocationHelper(
         }
     }
 
-    private fun displayLocation() {
+    private fun getLocation() {
         if (isPermissionChecked()) {
             return
         }

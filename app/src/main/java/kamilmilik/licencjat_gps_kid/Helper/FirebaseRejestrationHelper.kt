@@ -19,7 +19,7 @@ import kamilmilik.licencjat_gps_kid.models.User
  */
 class FirebaseRejestrationHelper {
     @SuppressLint("LongLogTag")
-    private val TAG : String = "FirebaseRejestrationHelper"
+    private val TAG : String = FirebaseRejestrationHelper::class.java.simpleName
 
     private var firebaseAuth: FirebaseAuth? = null
     private var firebaseDatabase : FirebaseDatabase? = null
