@@ -169,18 +169,20 @@ class LocationHelper(
         if (isPermissionChecked()) {
             return
         }
+         checkLocationEnabled()
         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
     }
 
      private fun checkLocationEnabled(): Boolean {
-        if(!isLocationEnabled())
-            showAlert();
-        return isLocationEnabled();
+        if(!isLocationEnabled()){
+            showAlert()
+        }
+        return isLocationEnabled()
     }
 
     private fun isLocationEnabled(): Boolean {
         var locationManager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER )|| locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     private fun showAlert() {
@@ -191,7 +193,9 @@ class LocationHelper(
                     val myIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                     activity.startActivity(myIntent)
                 })
-                .setNegativeButton("Cancel", DialogInterface.OnClickListener { paramDialogInterface, paramInt -> })
+                .setNegativeButton("Cancel", DialogInterface.OnClickListener { paramDialogInterface, paramInt ->
+                    paramDialogInterface.cancel()
+                })
         dialog.show()
     }
 }

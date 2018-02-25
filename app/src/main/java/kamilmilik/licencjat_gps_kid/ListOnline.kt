@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.os.PersistableBundle
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import kamilmilik.licencjat_gps_kid.Helper.OnlineUserHelper
 import kamilmilik.licencjat_gps_kid.Invite.EnterInviteActivity
 import kamilmilik.licencjat_gps_kid.Invite.SendInviteActivity
@@ -138,6 +139,8 @@ class ListOnline : AppCompatActivity(),
             MY_PERMISSION_REQUEST_CODE ->{
                     if(grantResults.isNotEmpty() && grantResults.get(0) == PackageManager.PERMISSION_GRANTED){
                         locationHelper!!.setupCurrentLocation()
+                    }else{
+                        Toast.makeText(this,"Permission denied", Toast.LENGTH_LONG).show()
                     }
             }
         }
