@@ -31,6 +31,7 @@ import kamilmilik.licencjat_gps_kid.Utils.OnItemClickListener
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.location.LocationRequest
 import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.location.LocationListener
@@ -48,6 +49,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import kamilmilik.licencjat_gps_kid.Helper.PermissionHelper
 import kamilmilik.licencjat_gps_kid.models.TrackingModel
 import java.text.DecimalFormat
 
@@ -121,21 +123,21 @@ class ListOnline : AppCompatActivity(),
     var mLastLocation: Location? = null
     var mCurrLocationMarker: Marker? = null
 
+    var permissionHelper : PermissionHelper = PermissionHelper(this)
     override fun onMapReady(googleMap: GoogleMap) {
-        mGoogleMap = googleMap
+                mGoogleMap = googleMap
 
         //Initialize Google Play Services
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Log.i(TAG,"version " + android.os.Build.VERSION.SDK_INT + " >= " + Build.VERSION_CODES.M)
-            if (ContextCompat.checkSelfPermission(this,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (permissionHelper!!.checkApkVersion()) {
+            Log.i(TAG,"vers(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) ion " + android.os.Build.VERSION.SDK_INT + " >= " + Build.VERSION_CODES.M)
+            if (permissionHelper!!.checkPermissionGranted()) {
                 Log.i(TAG, " Location Permission already granted")
                 //Location Permission already granted
                 buildGoogleApiClient()
                 mGoogleMap!!.isMyLocationEnabled = true
             } else {
                 //Request Location Permission
-                checkLocationPermission()
+                permissionHelper!!.checkLocationPermission()
             }
         } else {
             Log.i(TAG,"version " + android.os.Build.VERSION.SDK_INT + " < " + Build.VERSION_CODES.M)
@@ -143,17 +145,18 @@ class ListOnline : AppCompatActivity(),
             mGoogleMap!!.isMyLocationEnabled = true
         }
     }
-     fun buildGoogleApiClient() {
-         synchronized(this){
-             Log.i(TAG, "buildGoogleApiClient")
+    fun buildGoogleApiClient() {
+        synchronized(this){
+            Log.i(TAG, "buildGoogleApiClient")
             mGoogleApiClient =  GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
             mGoogleApiClient!!.connect();
-         }
+        }
     }
+    @SuppressLint("MissingPermission")
     override fun onConnected(p0: Bundle?) {
         Log.i(TAG,"onConnected")
         mLocationRequest =  LocationRequest()
@@ -161,9 +164,7 @@ class ListOnline : AppCompatActivity(),
         mLocationRequest!!.fastestInterval = 1000
         mLocationRequest!!.smallestDisplacement = 10F
         mLocationRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY //it must be high accuracy if not it not run onLocationChanged in first run and when allow permission
-        if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
+        if (permissionHelper!!.checkPermissionGranted()) {
             Log.i(TAG, "start request location updates ")
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this)
         }
@@ -247,50 +248,16 @@ class ListOnline : AppCompatActivity(),
 
         })
     }
-    val MY_PERMISSIONS_REQUEST_LOCATION = 99
-    fun checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
-
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-                 AlertDialog.Builder(this)
-                        .setTitle("Location Permission Needed")
-                        .setMessage("This app needs the Location permission, please accept to use location functionality")
-                         .setPositiveButton("Location Settings", DialogInterface.OnClickListener { paramDialogInterface, paramInt ->
-                             //Prompt the user once explanation has been shown
-                             ActivityCompat.requestPermissions(this,
-                                     arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
-                                     MY_PERMISSIONS_REQUEST_LOCATION );
-                         })
-                         .setNegativeButton("Cancel", DialogInterface.OnClickListener { paramDialogInterface, paramInt ->
-                             paramDialogInterface.cancel()
-                         }).create().show()
-            } else {
-                // No explanation needed, we can request the permission.
-                ActivityCompat.requestPermissions(this,
-                        arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
-                        MY_PERMISSIONS_REQUEST_LOCATION );
-            }
-        }
-    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when(requestCode){
             MY_PERMISSION_REQUEST_CODE ->{
-                if (grantResults.isNotEmpty()
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (permissionHelper!!.checkIsPermissionGrantedInRequestPermission(grantResults)) {
+                    Log.i(TAG,"permission was granted, yay!")
                     // permission was granted, yay! Do the
                     // location-related task you need to do.
-                    if (ContextCompat.checkSelfPermission(this,
-                            android.Manifest.permission.ACCESS_FINE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED) {
+                    if (permissionHelper!!.checkPermissionGranted()) {
 
                         if (mGoogleApiClient == null) {
                             buildGoogleApiClient()
@@ -313,18 +280,13 @@ class ListOnline : AppCompatActivity(),
         super.onResumeFragments()
         if (mPermissionDenied) {
             // Permission was not granted, display error dialog.
-            showMissingPermissionError()
+            permissionHelper!!.showMissingPermissionError()
             mPermissionDenied = false
         }
     }
 
-    /**
-     * Displays a dialog with error message explaining that the location permission is missing.
-     */
-    private fun showMissingPermissionError() {
-        Toast.makeText(this,"Your permission was not granted",Toast.LENGTH_LONG).show()
-    }
-//    override fun onPause() {
+
+    //    override fun onPause() {
 //        super.onPause()
 //
 //        //stop location updates when Activity is no longer active
